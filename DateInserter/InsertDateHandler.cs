@@ -11,28 +11,54 @@ namespace DateInserter
 {
     public class InsertDateHandler : CommandHandler
     {
+        private const string lINES_COUNT_DOCUMENT_NAME = "Lines Count Statistics";
+
         private TextEditorData textEditorData;
 
         protected override void Update(CommandInfo info)
         {
-            Document doc = IdeApp.Workbench.ActiveDocument;  
-            info.Enabled = doc != null && doc.GetContent<ITextEditorDataProvider>() != null;
+            info.Enabled = true; //openDocuments != null && openDocuments.GetContent<ITextEditorDataProvider>() != null;
         }
 
         protected override void Run()
         {
-            Document doc = IdeApp.Workbench.ActiveDocument;
-            textEditorData = doc.GetContent<ITextEditorDataProvider>().GetTextEditorData();  
+
+            Document linesCountDocument = IdeApp.Workbench.GetDocument(lINES_COUNT_DOCUMENT_NAME);
+            if (linesCountDocument == null)
+                linesCountDocument = IdeApp.Workbench.NewDocument(lINES_COUNT_DOCUMENT_NAME, "text/plain", "");
+            
+//            Document linesCountDocument = IdeApp.Workbench.ActiveDocument;
+            textEditorData = linesCountDocument.GetContent<ITextEditorDataProvider>().GetTextEditorData();
+
+            object selectedItem = IdeApp.ProjectOperations.CurrentSelectedItem;
+            if (selectedItem == null)
+                WriteEvathing();
+            else
+            {
+                Solution selectedSolution = selectedItem as Solution;
+                if (selectedSolution != null)
+                    ShowSolution(selectedSolution);
+                
+                Project selectedProject = selectedItem as Project;
+                if (selectedProject != null)
+                    ShowProject(selectedProject);
+
+                ProjectFile selectedFile = selectedItem as ProjectFile;
+                if (selectedFile != null)
+                    ShowProjectFile(selectedFile);
+            }
+
+        }
+
+        void WriteEvathing()
+        {
             Write("ApplicationRootPath: " + FileService.ApplicationRootPath);
             ReadOnlyCollection<Solution> solutions = IdeApp.Workspace.GetAllSolutions();
-
-
             foreach (Solution s in solutions)
             {
                 Write("Solution's file name: " + s.FileName);
                 Write("Solution's root folder: " + s.RootFolder.Name);
-
-                ShowSolution(s.RootFolder);
+                ShowSolution(s);
             }
         }
 
@@ -41,7 +67,7 @@ namespace DateInserter
             textEditorData.InsertAtCaret(info + "\n");
         }
 
-        private void ShowSolution(SolutionFolder solution)
+        private void ShowSolution(Solution solution)
         {
             foreach (SolutionItem si in solution.Items)
             {
@@ -61,11 +87,16 @@ namespace DateInserter
             foreach (ProjectItem projectItem in project.Items)
             {
                 ProjectFile projectFile = projectItem as ProjectFile;
-                if (projectFile != null)
-                {
-                    if (projectFile.Subtype == Subtype.Code && projectFile.FilePath.ToString().Trim().EndsWith(".cs"))
-                        Write("   " + projectFile.FilePath);
-                }
+                ShowProjectFile(projectFile);
+            }
+        }
+
+        void ShowProjectFile(ProjectFile projectFile)
+        {
+            if (projectFile != null)
+            {
+                if (projectFile.Subtype == Subtype.Code && projectFile.FilePath.ToString().Trim().EndsWith(".cs"))
+                    Write("   " + projectFile.FilePath);
             }
         }
     }
