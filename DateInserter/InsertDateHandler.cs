@@ -16,7 +16,21 @@ namespace DateInserter
 
         protected override void Update(CommandInfo info)
         {
-            info.Enabled = GetSelectedItem() != null;
+            object selectedItem = GetSelectedItem();
+
+            if (selectedItem == null)
+            {
+                info.Enabled = false;
+                return;
+            }
+
+            if (selectedItem is Project || selectedItem is Solution)
+                info.Enabled = true;
+            else
+            {
+                ProjectFile selectedFile = selectedItem as ProjectFile;
+                info.Enabled = selectedFile != null && LinesCountWriter.IsCSharpFile(selectedFile);
+            }
         }
 
         protected override void Run()

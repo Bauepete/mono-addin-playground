@@ -32,6 +32,7 @@ namespace DateInserter
         public void WriteInfoOfSelectedItem(object selectedItem)
         {
             textEditorData.Document.Text = "";
+
             Solution selectedSolution = selectedItem as Solution;
             if (selectedSolution != null)
                 ShowSolution(selectedSolution);
@@ -78,9 +79,14 @@ namespace DateInserter
         {
             if (projectFile != null)
             {
-                if (projectFile.Subtype == Subtype.Code && projectFile.FilePath.ToString().Trim().EndsWith(".cs"))
+                if (IsCSharpFile(projectFile))
                     WriteFileInfo(projectFile.FilePath);
             }
+        }
+
+        public static bool IsCSharpFile(ProjectFile projectFile)
+        {
+            return projectFile.Subtype == Subtype.Code && projectFile.FilePath.ToString().Trim().EndsWith(".cs");
         }
 
         private void WriteFileInfo(FilePath filePath)
