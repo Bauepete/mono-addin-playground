@@ -31,6 +31,7 @@ namespace DateInserter
         /// <param name="selectedItem">Selected item.</param>
         public void WriteInfoOfSelectedItem(object selectedItem)
         {
+            textEditorData.Document.Text = "";
             Solution selectedSolution = selectedItem as Solution;
             if (selectedSolution != null)
                 ShowSolution(selectedSolution);
